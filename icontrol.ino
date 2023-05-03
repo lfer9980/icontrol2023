@@ -6,13 +6,8 @@
 
 // config el ethernet
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-IPAddress ip(192, 168, 0, 10);
-char url[] = "192.168.0.6";
-
-// config DHT
-#define DHTPIN 5
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
+IPAddress ip(192, 168, 0, 20);
+char url[] = "https://icontrol-web2023-production.up.railway.app";
 
 // config http
 EthernetClient ether;
@@ -29,10 +24,9 @@ void setup()
 
   Serial.begin(9600);
 
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
+  pinMode(10, INPUT);
+  pinMode(11, INPUT);
 
-  dht.begin();
   Serial.println("Initialize Ethernet with DHCP:");
   if (Ethernet.begin(mac) == 0)
   {
@@ -60,33 +54,9 @@ void setup()
   Serial.println();
 }
 
-void leds(int hum, int temp)
-{
-  if (hum == 1 and temp == 1)
-  {
-    digitalWrite(3, HIGH);
-    digitalWrite(4, HIGH);
-  }
-  else if (hum == 1 and temp == 0)
-  {
-    digitalWrite(3, HIGH);
-    digitalWrite(4, LOW);
-  }
-  else if (hum == 0 and temp == 1)
-  {
-    digitalWrite(3, LOW);
-    digitalWrite(4, HIGH);
-  }
-  else
-  {
-    digitalWrite(3, LOW);
-    digitalWrite(4, LOW);
-  }
-}
-
+/* 
 void get()
 {
-
   Serial.println("=========GET=========");
 
   client.beginRequest();
@@ -101,26 +71,18 @@ void get()
   if (statusCode == 200)
   {
     DeserializationError error = deserializeJson(doc, response);
-
-    bool ishot = doc["ishot"]; // true
-    bool ishum = doc["ishum"]; // false
-
     Serial.println(response);
-
-    leds(ishum, ishot);
   }
   else
   {
-
     Serial.println("Ocurrio un error");
   }
 
-  delay(2000);
-}
+  delay(1000);
+} */
 
 void post(String data)
 {
-
   Serial.println("=========POST=========");
 
   Serial.println(data);
@@ -148,7 +110,7 @@ void post(String data)
     Serial.println("Ocurrio un error");
   }
 
-  delay(2000);
+  delay(1000);
 }
 
 void loop()
@@ -156,15 +118,21 @@ void loop()
 
   if (posting == true)
   {
-    float hum = dht.readHumidity();
-    float temp = dht.readTemperature();
-    String data = "temp=" + String(temp) + "&hum=" + String(hum);
-    post(data);
-    posting = false;
+    if((digitalRead(10) == 1)||(digitalRead(11) == 1))
+    {
+      Serial.println('!');
+    }
+    else{
+      float lecture = analogRead(A0);
+      Serial.println(lecture);
+      delay(1);
+      String data = "lect=" + String(lecture);
+      post(data);
+      posting = false;
+    }
   }
   else
   {
-    get();
     posting = true;
   }
 
